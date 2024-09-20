@@ -4,10 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers;
+use App\Models\Section;
 use App\Models\Student;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -25,7 +28,27 @@ class StudentResource extends Resource
     {
         return $form
             ->schema([
-                //
+                TextInput::make('name')
+                    ->required()
+                    ->autofocus(),
+
+                TextInput::make('email')
+                    ->required()
+                    ->autofocus(),
+
+                Select::make('class_id')
+                    ->live()
+                    ->relationship('class', 'name'),
+
+                Select::make('section_id')
+                    ->label('Select Section')
+                    ->options(function (Get $get) {
+                        $classId = $get('class_id');
+
+                        if ($classId) {
+                            return Section::where('class_id', $classId)->pluck('name', 'id')->toArray();
+                        }
+                    }),
             ]);
     }
 
