@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\StudentsExport;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers;
 use App\Models\Section;
@@ -13,10 +14,13 @@ use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StudentResource extends Resource
 {
@@ -43,10 +47,11 @@ class StudentResource extends Resource
                 Select::make('section_id')
                     ->label('Select Section')
                     ->options(function (Get $get) {
-                        $classId = $get('class_id');
 
-                        if ($classId) {
-                            return Section::where('class_id', $classId)->pluck('name', 'id')->toArray();
+                        if ($get('class_id')) {
+                            return Section::where('class_id', $get('class_id'))
+                                ->pluck('name', 'id')
+                                ->toArray();
                         }
                     }),
             ]);
@@ -79,6 +84,12 @@ class StudentResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    BulkAction::make('export')
+                    ->label('Export Excel')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->action(function(Collection $records) {
+                        return Excel::download(new StudentsExport($records), 'students.xlsx');
+                    })
                 ]),
             ]);
     }
