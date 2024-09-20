@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Exports\StudentsExport;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers;
+use App\Models\Classes;
 use App\Models\Section;
 use App\Models\Student;
 use Filament\Forms;
@@ -16,11 +17,14 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Maatwebsite\Excel\Facades\Excel;
+
+use function Laravel\Prompts\select;
 
 class StudentResource extends Resource
 {
@@ -75,7 +79,20 @@ class StudentResource extends Resource
                 TextColumn::make('section.name')->badge(),
             ])
             ->filters([
-                //
+                Filter::make('class-section-fillter')
+                    ->form([
+                        Select::make('class_id')
+                            ->label('fillter by class')
+                            ->placeholder('select a class')
+                            ->options(
+                                Classes::pluck('name', 'id')->toArray(),
+                            )
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when($data['class_id'], function ($query) use ($data) {
+                            return $query->where('class_id', $data['class_id']);
+                        });
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -85,11 +102,11 @@ class StudentResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                     BulkAction::make('export')
-                    ->label('Export Excel')
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->action(function(Collection $records) {
-                        return Excel::download(new StudentsExport($records), 'students.xlsx');
-                    })
+                        ->label('Export Excel')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->action(function (Collection $records) {
+                            return Excel::download(new StudentsExport($records), 'students.xlsx');
+                        })
                 ]),
             ]);
     }
