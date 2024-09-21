@@ -27,7 +27,9 @@ class ClassesResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('name'),
+                TextInput::make('name')
+                    ->required()
+                    ->unique(ignoreRecord: true),
             ]);
     }
 
