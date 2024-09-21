@@ -4,11 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Exports\StudentsExport;
 use App\Filament\Resources\StudentResource\Pages;
-use App\Filament\Resources\StudentResource\RelationManagers;
 use App\Models\Classes;
 use App\Models\Section;
 use App\Models\Student;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -21,7 +19,6 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Maatwebsite\Excel\Facades\Excel;
 
 use function Laravel\Prompts\select;
@@ -86,11 +83,26 @@ class StudentResource extends Resource
                             ->placeholder('select a class')
                             ->options(
                                 Classes::pluck('name', 'id')->toArray(),
-                            )
+                            ),
+
+                        Select::make('section_id')
+                            ->label('fillter by section')
+                            ->placeholder('select a section')
+                            ->options(function (Get $get) {
+                                $classId = $get('class_id');
+                                if ($classId) {
+                                    return Section::where('class_id', $classId)->pluck('name', 'id')
+                                        ->toArray();
+                                }
+                            }),
                     ])
+                    //for class
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when($data['class_id'], function ($query) use ($data) {
                             return $query->where('class_id', $data['class_id']);
+                            //for section
+                        })->when($data['section_id'], function ($query) use ($data) {
+                            return $query->where('section_id', $data['section_id']);
                         });
                     }),
             ])
