@@ -13,7 +13,7 @@ class ClassesSeeder extends Seeder
     public function run(): void
     {
         Classes::factory()
-            ->count(10)
+            ->count(2)
             ->sequence(fn($sequence) => ['name' => 'Class' . $sequence->index + 1])
             ->has(
 
@@ -23,7 +23,7 @@ class ClassesSeeder extends Seeder
                     ->has(
 
                         Student::factory()
-                            ->count(5)
+                            ->count(6)
                             ->state(
                                 function (array $attributes, Section $section) {
                                     return ['class_id' => $section->class_id];
