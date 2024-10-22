@@ -48,7 +48,15 @@ class StudentResource extends Resource
 
                 Select::make('class_id')
                     ->live()
-                    ->relationship('class', 'name'),
+                    ->relationship('class', 'name')
+                    ->visible(fn() => auth()->user()->can('add student to class')),
+
+
+                // Select::make('section_id')
+                // ->options(function (Get $get) {
+                //     return Section::where('class_id', $get('class_id'))->pluck('name', 'id');
+                // })
+                // ->visible(fn () => auth()->user()->can('add student to class')),
 
                 Select::make('section_id')
                     ->label('Select Section')
@@ -59,7 +67,8 @@ class StudentResource extends Resource
                                 ->pluck('name', 'id')
                                 ->toArray();
                         }
-                    }),
+                    })
+                    ->visible(fn () => auth()->user()->can('add student to class')),
             ]);
     }
 
@@ -113,11 +122,14 @@ class StudentResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn ($record) => auth()->user()->can('remove student from class')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                    ->visible(fn () => auth()->user()->can('remove student from class')),
+
                     BulkAction::make('export')
                         ->label('Export Excel')
                         ->icon('heroicon-o-document-arrow-down')
