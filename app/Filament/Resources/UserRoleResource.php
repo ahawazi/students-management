@@ -8,6 +8,7 @@ use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -15,6 +16,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Rawilk\FilamentPasswordInput\Password;
 use Spatie\Permission\Models\Role;
 
 class UserRoleResource extends Resource
@@ -28,6 +30,13 @@ class UserRoleResource extends Resource
     {
         return $form
             ->schema([
+                TextInput::make('name')->required(),
+
+                TextInput::make('email')->required(),
+
+                Password::make('password')
+                ->label('Password'),
+
                 Select::make('roles')
                     ->multiple()
                     ->relationship('roles', 'name')
@@ -53,8 +62,9 @@ class UserRoleResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()->visible(fn ($record) => $record->hasRole('teacher')),
+                Tables\Actions\EditAction::make()->visible(fn ($record) => auth()->user()->hasRole('admin')),
+                Tables\Actions\DeleteAction::make()->visible(fn ($record) => auth()->user()->hasRole('admin')),
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -77,5 +87,25 @@ class UserRoleResource extends Resource
             'create' => Pages\CreateUserRole::route('/create'),
             'edit' => Pages\EditUserRole::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()->hasRole('admin');
     }
 }

@@ -44,12 +44,12 @@ class ClassesResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()->visible(fn () => auth()->user()->hasRole('teacher')),
+                Tables\Actions\EditAction::make()->visible(fn () => auth()->user()->hasRole('admin')),
+                Tables\Actions\DeleteAction::make()->visible(fn () => auth()->user()->hasRole('admin')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()->visible(fn () => auth()->user()->hasRole('teacher')),
+                    Tables\Actions\DeleteBulkAction::make()->visible(fn () => auth()->user()->hasRole('admin')),
                 ]),
             ]);
     }
@@ -68,5 +68,19 @@ class ClassesResource extends Resource
             'create' => Pages\CreateClasses::route('/create'),
             'edit' => Pages\EditClasses::route('/{record}/edit'),
         ];
+    }
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()->hasRole('admin');
     }
 }

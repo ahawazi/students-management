@@ -121,14 +121,13 @@ class StudentResource extends Resource
                     }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()
-                    ->visible(fn ($record) => auth()->user()->can('remove student from class')),
+                Tables\Actions\EditAction::make()->visible(fn ($record) => auth()->user()->hasRole('teacher') || auth()->user()->hasRole('admin')),
+                Tables\Actions\DeleteAction::make()->visible(fn ($record) => auth()->user()->hasRole('teacher') || auth()->user()->hasRole('admin')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                    ->visible(fn () => auth()->user()->can('remove student from class')),
+                    ->visible(fn () => auth()->user()->hasRole('teacher') || auth()->user()->hasRole('admin')),
 
                     BulkAction::make('export')
                         ->label('Export Excel')
@@ -154,5 +153,20 @@ class StudentResource extends Resource
             'create' => Pages\CreateStudent::route('/create'),
             'edit' => Pages\EditStudent::route('/{record}/edit'),
         ];
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasRole('teacher') || auth()->user()->hasRole('admin');
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()->hasRole('teacher') || auth()->user()->hasRole('admin');
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()->hasRole('teacher') || auth()->user()->hasRole('admin');
     }
 }
